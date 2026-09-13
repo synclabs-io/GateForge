@@ -9,6 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	db "github.com/synclabs-io/GateForge/db/generated"
+	"github.com/synclabs-io/GateForge/internal/domain/entities"
 	domain_errors "github.com/synclabs-io/GateForge/internal/domain/errors"
 )
 
@@ -20,14 +21,18 @@ func NewUsersRepository(pool *pgxpool.Pool) *UsersRepository {
 	return &UsersRepository{q: db.New(pool)}
 }
 
-func (r *UsersRepository) CreateUser(ctx context.Context, params db.CreateUserParams) (db.User, error) {
-	user, err := r.q.CreateUser(ctx, params)
+func (r *UsersRepository) CreateUser(ctx context.Context, entity entities.User) (entities.User, error) {
+	_, err := r.q.CreateUser(ctx, db.CreateUserParams{
+		ID:           entity.ID.String(),
+		Username:     entity.Username.String(),
+		PasswordHash: entity.Password.String(),
+	})
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == pgerrcode.UniqueViolation {
-			return db.User{}, domain_errors.ErrUserAlreadyExists
+			return entities.User{}, domain_errors.ErrUserAlreadyExists
 		}
-		return db.User{}, fmt.Errorf("UsersRepository.CreateUser: %w", err)
+		return entities.User{}, fmt.Errorf("UsersRepository.CreateUser: %w", err)
 	}
-	return user, nil
+	return entity, nil
 }
