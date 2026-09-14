@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "k8s.fullname" . }}
+  labels:
+    {{ include "k8s.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{ include "k8s.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      name: {{ include "k8s.fullname" . }}
+      labels:
+        {{ include "k8s.labels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ include "k8s.fullname" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - name: {{ .Values.containerPorts.name }}
+              containerPort: {{ .Values.containerPorts.containerPort }}
+              protocol: {{ .Values.containerPorts.protocol }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          resources:
+            requests:
+              cpu: {{ .Values.resources.requests.cpu }}
+              memory: {{ .Values.resources.requests.memory }}
+            limits:
+              cpu: {{ .Values.resources.limits.cpu }}
+              memory: {{ .Values.resources.limits.memory }}
+          livenessProbe:
+            httpGet:
+              port: {{ .Values.livenessProbe.httpGet.port }}
+              path: {{ .Values.livenessProbe.httpGet.path }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.livenessProbe.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              port: {{ .Values.readinessProbe.httpGet.port }}
+              path: {{ .Values.readinessProbe.httpGet.path }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
+          env:
+            - name: {{ .Values.secret.database.name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "k8s.fullname" . }}-secret
+                  key: {{ .Values.secret.database.name }}
+            - name: {{ .Values.secret.redis.name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "k8s.fullname" . }}-secret
+                  key: {{ .Values.secret.redis.name }}
+            - name: {{ .Values.secret.jwt.name }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "k8s.fullname" . }}-secret
+                  key: {{ .Values.secret.jwt.name }}
+            - name: {{ .Values.postgresql.host.name }}
+              value: {{ .Values.postgresql.host.value | quote }}
+            - name: {{ .Values.redis.host.name }}
+              value: {{ .Values.redis.host.value | quote }}
