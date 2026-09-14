@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "k8s.fullname" . }}-migrations-{{ .Release.Revision }}
+  labels:
+    {{ include "k8s.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+spec:
+  template:
+    metadata:
+      labels:
+        app: {{ include "k8s.fullname" . }}-migrations
+    spec:
+      containers:
+        - name: {{ include "k8s.fullname" . }}-migrations
+          imagePullPolicy: IfNotPresent
+          image: synclabs/goose-migrations:v1.0.0
+          env:
+            - name: GOOSE_DRIVER
+              value: "postgres"
+            - name: GOOSE_DBSTRING
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "k8s.fullname" . }}-secret
+                  key: DATABASE_URL
+      restartPolicy: Never
+  backoffLimit: 1

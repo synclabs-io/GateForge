@@ -1,0 +1,119 @@
+# Default values for k8s.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+postgresql:
+  host:
+    value: postgres-postgresql
+    name: POSTGRES_HOST
+
+redis:
+  host:
+    value: redis-master:6379
+    name: REDIS_ADDR
+
+secret:
+  database:
+    name: POSTGRES_PASSWORD
+    password: super_secret_postgres_pass
+    url: postgres://postgres:super_secret_postgres_pass@postgres-postgresql:5432/gateforge?sslmode=disable
+  redis:
+    name: REDIS_PASSWORD
+    password: super_secret_redis_pass
+  jwt:
+    name: JWT_SECRET
+    secret: my_ultra_secure_jwt_secret_key_123!
+
+containerPorts:
+    name: http
+    containerPort: 8080
+    protocol: TCP
+
+image:
+  repository: synclabs/gateforge
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: v1.0.1
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 8080
+  initialDelaySeconds: 15
+  periodSeconds: 20
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: 8080
+  initialDelaySeconds: 15
+  periodSeconds: 20
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  email: vkmgscarf4@gmail.com
+  enabled: true
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  host: xn--90aoamd3a5h.xn--p1ai
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
