@@ -76,6 +76,10 @@ func run(logger *slog.Logger) error {
 		r.Post("/register", usersHandler.Register)
 	})
 
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		http_handlers.SendJSON(w, http.StatusOK, map[string]bool{"success": true})
+	})
+
 	srv := &http.Server{
 		Addr:              cfg.App.HTTPPort,
 		Handler:           r,
